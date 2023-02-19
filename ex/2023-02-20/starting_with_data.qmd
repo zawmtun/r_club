@@ -1,0 +1,132 @@
+---
+title: "Starting with data"
+format: html
+editor_options: 
+  chunk_output_type: console
+---
+
+## Loading the survey data
+
+```{r}
+download.file(
+  url = "https://ndownloader.figshare.com/files/2292169",
+  destfile = "portal_data_joined.csv"
+)
+```
+
+## Load package
+
+```{r}
+library(tidyverse)
+```
+
+## Load and view data
+
+```{r}
+surveys <- read_csv("portal_data_joined.csv")
+```
+
+```{r}
+print(surveys) # default 10 rows
+surveys
+print(surveys, n = 50)
+```
+
+
+```{r}
+head(surveys) # default 6 rows
+head(surveys, n = 15)
+```
+
+```{r}
+tail(surveys) # default 6 rows
+tail(surveys, n = 15)
+```
+
+```{r}
+str(surveys)
+```
+
+```{r}
+glimpse(surveys)
+```
+
+```{r}
+view(surveys) # Even better: use F2 shortcut
+```
+
+
+## Challenge: View data
+
+Based on the output of str(surveys), can you answer the following questions?
+
+- What is the class of the object surveys?
+- How many rows and how many columns are in this object?
+
+```{r}
+class(surveys)
+```
+
+
+## Indexing and subsetting data frames ----
+
+```{r}
+surveys[1, 1] # First row and first column, output: dataframe
+
+surveys[1, 6] # First row and sixth column, output: dataframe
+
+surveys[1, ] # Entire first row, output: dataframe
+
+surveys[, 1] # Entire first column, output: dataframe
+
+surveys[1] # Entire first column, output: dataframe
+
+surveys[c(1, 2, 3), c(5, 6)] # Frist 3 rows and fifth/sixth columns, output: dataframe
+surveys[1:3, 5:6]
+```
+
+
+```{r}
+surveys[1:6, ] # First six rows
+head(surveys)
+
+nrow(surveys)
+surveys[34781:34786,]
+surveys[34781:nrow(surveys),]
+tail(surveys)
+
+surveys[[1]] # First row, output: vector
+
+surveys[[1, 1]] # First column and first row, output: vector
+```
+
+
+```{r}
+surveys[, -1]
+surveys[-(7:nrow(surveys)),]
+```
+
+
+```{r}
+surveys["species_id"]
+surveys[, "species_id"]
+
+surveys[["species_id"]]
+
+surveys$species_id
+```
+
+
+## Challenge: Subsetting datafarme
+
+Create a data.frame (surveys_200) containing only the data in row 200 of the surveys dataset.
+
+Notice how nrow() gave you the number of rows in a data.frame?
+
+Use that number to pull out just that last row from the surveys dataset.
+Compare that with what you see as the last row using tail() to make sure it’s meeting expectations.
+Pull out that last row using nrow() instead of the row number.
+Create a new data frame (surveys_last) from that last row.
+Use nrow() to extract the row that is in the middle of the data frame. Store the content of this row in an object named surveys_middle.
+
+Combine nrow() with the - notation above to reproduce the behavior of head(surveys), keeping just the first through 6th rows of the surveys dataset.
