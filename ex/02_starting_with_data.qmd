@@ -1,0 +1,341 @@
+---
+title: "Starting with data"
+format: html
+editor_options: 
+  chunk_output_type: console
+---
+
+## Loading the survey data
+
+```{r}
+download.file(
+  url = "https://ndownloader.figshare.com/files/2292169",
+  destfile = "portal_data_joined.csv"
+)
+```
+
+## Load package
+
+```{r}
+library(tidyverse)
+```
+
+## Load and view data
+
+```{r}
+surveys <- read_csv("portal_data_joined.csv")
+```
+
+```{r}
+print(surveys) # default 10 rows
+surveys
+print(surveys, n = 50)
+```
+
+
+```{r}
+head(surveys) # default 6 rows
+head(surveys, n = 15)
+```
+
+```{r}
+tail(surveys) # default 6 rows
+tail(surveys, n = 15)
+```
+
+```{r}
+str(surveys)
+```
+
+```{r}
+glimpse(surveys)
+```
+
+```{r}
+view(surveys)
+surveys # Even better: use F2 shortcut
+```
+
+## Challenge: View data
+
+Based on the output of str(surveys), can you answer the following questions?
+
+- What is the class of the object surveys?
+- How many rows and how many columns are in this object?
+
+```{r}
+class(surveys)
+```
+
+
+## Indexing and subsetting data frames ----
+
+```{r}
+surveys[1, 1] # Extract the first row and first column, output: dataframe
+
+surveys[1, 6] # Extract first row and sixth column, output: dataframe
+
+surveys[1, ] # Extract entire first row, output: dataframe
+
+surveys[, 1] # Extract entire first column, output: dataframe
+
+surveys[1] # Extract entire first column, output: dataframe
+
+surveys[c(1, 2, 3), c(5, 6)] # Extract the frist 3 rows and fifth/sixth columns, output: dataframe
+surveys[1:3, 5:6]
+```
+
+
+```{r}
+surveys[1:6, ] # Extract the first six rows
+head(surveys)
+
+nrow(surveys)
+surveys[34781:34786,]
+surveys[34781:nrow(surveys),]
+tail(surveys)
+
+surveys[[1]] # Get the first row, output: vector
+
+surveys[[1, 1]] # Get the first column and first row, output: vector
+```
+
+
+```{r}
+surveys[, -1]
+surveys[-(7:nrow(surveys)),]
+```
+
+
+```{r}
+surveys["species_id"]
+surveys[, "species_id"]
+
+surveys[["species_id"]]
+
+surveys$species_id
+```
+
+## Challenge: Subsetting datafarme
+
+Q: Create a data.frame (surveys_200) containing only the data in row 200 of the surveys dataset.
+
+Q: Notice how nrow() gave you the number of rows in a data.frame? Use that number to pull out just that last row from the surveys dataset.
+
+Q: Compare that with what you see as the last row using tail() to make sure it’s meeting expectations.
+
+Q: Pull out that last row using nrow() instead of the row number.
+
+Q: Create a new data frame (surveys_last) from that last row.
+
+Q: Use nrow() to extract the row that is in the middle of the data frame. Store the content of this row in an object named `surveys_middle`.
+
+Q: Combine nrow() with the - notation above to reproduce the behavior of head(surveys), keeping just the first through 6th rows of the surveys dataset.
+
+
+## Factors
+
+```{r}
+summary(surveys$sex)
+surveys$sex <- factor(surveys$sex)
+summary(surveys$sex)
+```
+
+```{r}
+sex <- factor(c("male", "female", "female", "male"))
+sex # default: sort by alphabetical order
+levels(sex)
+nlevels(sex)
+```
+
+If we want male to be the first level:
+
+```{r}
+sex <- factor(sex, levels = c("male", "female"))
+levels(sex)
+```
+
+Factors are integers with labels
+
+```{r}
+class(sex)
+typeof(sex)
+```
+
+## Challenge: Factors
+
+Q: Change the columns taxa and genus in the surveys data frame into a factor.
+
+Q: Using the functions you learned before, can you find out…
+
+Q: How many rabbits were observed?
+Q: How many different genera are in the genus column?
+
+```{r}
+
+```
+
+
+## Converting factors
+
+```{r}
+sex
+as.character(sex)
+```
+
+
+```{r}
+year_fct <- factor(c(1990, 1983, 1977, 1998, 1990))
+```
+
+Let's say we want to convert `year_fct` to numeric.
+
+```{r}
+as.numeric(year_fct) # Wrong! And there is no warning...
+```
+
+
+```{r}
+as.numeric(as.character(year_fct)) # Works...
+as.character(year_fct)
+as.numeric(as.character(year_fct))
+```
+
+
+```{r}
+as.numeric(levels(year_fct))[year_fct] # The recommended way.
+levels(year_fct)
+as.numeric(levels(year_fct))
+as.numeric(levels(year_fct))[year_fct] # The recommended way.
+```
+
+
+## Renaming factor levels
+
+```{r}
+surveys$sex <- factor(surveys$sex)
+plot(surveys$sex)
+```
+
+```{r}
+surveys$sex <- addNA(surveys$sex)
+levels(surveys$sex)
+plot(surveys$sex)
+```
+
+```{r}
+levels(surveys$sex)[3] <- "Undetermined"
+levels(surveys$sex)
+plot(surveys$sex)
+```
+
+## Challenge: Renaming factor levels
+
+Q: Rename “F” and “M” to “female” and “male” respectively.
+
+Q: Now that we have renamed the factor level to “undetermined”, can you recreate the barplot such that “undetermined” is first (before “female”)?
+
+```{r}
+
+```
+
+
+## More challenges: data frames
+
+Q: We have seen how data frames are created when using `read_csv()`, but they can also be created by hand with the `data.frame()` function. There are a few mistakes in this hand-crafted data.frame. Can you spot and fix them? Don’t hesitate to experiment!
+
+```{r}
+animal_data <- data.frame(
+  animal = c(dog, cat, sea cucumber, sea urchin),
+  feel = c("furry", "squishy", "spiny"),
+  weight = c(45, 8 1.1, 0.8)
+)
+```
+
+Q: Can you predict the class for each of the columns in the following example? Check your guesses using str(country_climate):
+
+Q: Are they what you expected? Why? Why not?
+
+Q: What would you need to change to ensure that each column had the accurate data type?
+
+```{r}
+country_climate <- data.frame(
+  country = c("Canada", "Panama", "South Africa", "Australia"),
+  climate = c("cold", "hot", "temperate", "hot/temperate"),
+  temperature = c(10, 30, 18, "15"),
+  northern_hemisphere = c(TRUE, TRUE, FALSE, "FALSE"),
+  has_kangaroo = c(FALSE, FALSE, FALSE, 1)
+)
+```
+
+
+## Formatting dates
+
+confirm that `surveys` data frame has separate columns for day, month, and year.
+
+```{r}
+str(surveys)
+```
+
+Load package
+
+```{r}
+library(lubridate)
+```
+
+```{r}
+my_date <- ymd("2015-01-01")
+my_date
+str(my_date)
+```
+
+Try the wrong way.
+
+```{r}
+my_date <- ymd("2015-13-01")
+my_date
+```
+
+Paste three numbers together.
+
+```{r}
+my_date2 <- paste(2015, 1, 1, sep = "-")
+my_date2
+str(my_date2)
+my_date2 <- ymd(my_date2)
+str(my_date2)
+```
+
+Now create date variable in `surveys` dataset.
+
+```{r}
+paste(surveys$year, surveys$month, surveys$day, sep = "-")
+```
+
+
+```{r}
+ymd(paste(surveys$year, surveys$month, surveys$day, sep = "-"))
+```
+
+Some dates could not be parsed - stored as NA. We will deal with it later.
+
+
+```{r}
+surveys$date <- ymd(paste(surveys$year, surveys$month, surveys$day, sep = "-"))
+```
+
+```{r}
+str(surveys)
+summary(surveys$date)
+```
+
+
+Let's investigate the NAs in `date`.
+
+```{r}
+is.na(surveys$date)
+summary(is.na(surveys$date))
+view(surveys[is.na(surveys$date), c("date", "day", "month", "year")])
+```
+
+How should we deal with these NAs?
