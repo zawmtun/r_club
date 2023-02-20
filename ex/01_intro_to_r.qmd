@@ -14,7 +14,7 @@ weight_g
 animals <- c("mouse", "rat", "dog")
 animals
 
-n <- 1:10
+n <- 2:10
 n
 
 length(weight_g)
@@ -47,13 +47,16 @@ Q: What will happen in each of these examples? (hint: use `class()` to check the
 
 ```{r}
 num_char <- c(1, 2, 3, "a")
+num_char <- c("a", 2, 3, 4)
 num_char
+class(num_char)
 
 num_logical <- c(1, 2, 3, TRUE)
 num_logical
 
 char_logical <- c("a", "b", "c", TRUE)
 char_logical
+class(char_logical)
 
 tricky <- c(1, 2, 3, "4")
 tricky
@@ -159,9 +162,26 @@ Q: Using this vector of heights in inches, create a new vector, `heights_no_na`,
 
 ```{r}
 heights <- c(63, 69, 60, 65, NA, 68, 61, 70, 61, 59, 64, 69, 63, 63, NA, 72, 65, 64, 70, 63, 65)
+length(heights)
+class(heights)
+
 ```
 
 Q: Use the function median() to calculate the median of the heights vector.
 
+```{r}
+median(heights, na.rm = TRUE)
+```
+
 Q: Use R to figure out how many people in the set are taller than 67 inches.
+
+```{r}
+is.na(heights)
+heights_no_na <- heights[!is.na(heights)]
+
+my_lgl <- heights_no_na > 67
+summary(my_lgl)
+table(my_lgl)
+heights_no_na[my_lgl]
+```
 
