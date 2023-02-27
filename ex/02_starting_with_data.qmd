@@ -99,8 +99,19 @@ surveys[34781:nrow(surveys),]
 tail(surveys)
 
 surveys[[1]] # Get the first row, output: vector
+surveys[1]
+class(surveys[[1]])
+class(surveys[1])
 
+surveys[1, 1]
 surveys[[1, 1]] # Get the first column and first row, output: vector
+class(surveys[1, 1])
+class(surveys[[1, 1]])
+
+summary(surveys[[9]])
+mean(surveys[[9]], na.rm = TRUE)
+median(surveys[[9]], na.rm = TRUE)
+summary(surveys)
 ```
 
 
@@ -108,6 +119,18 @@ surveys[[1, 1]] # Get the first column and first row, output: vector
 vec <- 1:10
 vec
 vec[-1] # Remove the first element
+
+vec2 <- 11:20
+vec2
+length(vec)
+length(vec2)
+data.frame(vec, vec2)
+tibble(vec, vec2)
+
+vec3 <- 11:21
+length(vec3)
+tibble(vec, vec3)
+
 
 surveys[-1] # Remove the first column, output: dataframe
 surveys[, -1] # Same as above, output: dataframe
@@ -122,8 +145,11 @@ surveys["species_id"] # Select species_id column, output: dataframe
 surveys[, "species_id"] # Same as above, output: dataframe
 
 surveys[["species_id"]] # Select species_id column, output: vector
+class(surveys["species_id"])
+class(surveys[["species_id"]])
 
 surveys$species_id # Select species_id column, output: vector 
+class(surveys$species_id)
 ```
 
 ```{r}
@@ -137,18 +163,56 @@ surveys[, my_cols]
 
 Q: Create a data.frame (surveys_200) containing only the data in row 200 of the surveys dataset.
 
+```{r}
+surveys_200 <- surveys[200,]
+surveys_200
+```
+
+
 Q: Notice how nrow() gave you the number of rows in a data.frame? Use that number to pull out just that last row from the surveys dataset.
+
+```{r}
+nrow(surveys)
+surveys[34786,]
+```
 
 Q: Compare that with what you see as the last row using tail() to make sure it’s meeting expectations.
 
+```{r}
+tail(surveys)
+```
+
+
 Q: Pull out that last row using nrow() instead of the row number.
+
+```{r}
+surveys[nrow(surveys),]
+```
+
 
 Q: Create a new data frame (surveys_last) from that last row.
 
+```{r}
+surveys_last <- surveys[nrow(surveys),]
+surveys_last
+```
+
+
 Q: Use nrow() to extract the row that is in the middle of the data frame. Store the content of this row in an object named `surveys_middle`.
+
+```{r}
+surveys_middle <- surveys[nrow(surveys)/2,]
+surveys_middle
+```
+
 
 Q: Combine nrow() with the - notation above to reproduce the behavior of head(surveys), keeping just the first through 6th rows of the surveys dataset.
 
+```{r}
+# head()
+surveys[1:6,]
+surveys[-(7:nrow(surveys)),]
+```
 
 ## Formatting dates
 
