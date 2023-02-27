@@ -133,142 +133,6 @@ Q: Use nrow() to extract the row that is in the middle of the data frame. Store 
 Q: Combine nrow() with the - notation above to reproduce the behavior of head(surveys), keeping just the first through 6th rows of the surveys dataset.
 
 
-## Factors
-
-```{r}
-summary(surveys$sex)
-surveys$sex <- factor(surveys$sex)
-summary(surveys$sex)
-```
-
-```{r}
-sex <- factor(c("male", "female", "female", "male"))
-sex # default: sort by alphabetical order
-levels(sex)
-nlevels(sex)
-```
-
-If we want male to be the first level:
-
-```{r}
-sex <- factor(sex, levels = c("male", "female"))
-levels(sex)
-```
-
-Factors are integers with labels
-
-```{r}
-class(sex)
-typeof(sex)
-```
-
-## Challenge: Factors
-
-Q: Change the columns taxa and genus in the surveys data frame into a factor.
-
-Q: Using the functions you learned before, can you find out…
-
-Q: How many rabbits were observed?
-Q: How many different genera are in the genus column?
-
-```{r}
-
-```
-
-
-## Converting factors
-
-```{r}
-sex
-as.character(sex)
-```
-
-
-```{r}
-year_fct <- factor(c(1990, 1983, 1977, 1998, 1990))
-```
-
-Let's say we want to convert `year_fct` to numeric.
-
-```{r}
-as.numeric(year_fct) # Wrong! And there is no warning...
-```
-
-
-```{r}
-as.numeric(as.character(year_fct)) # Works...
-as.character(year_fct)
-as.numeric(as.character(year_fct))
-```
-
-
-```{r}
-as.numeric(levels(year_fct))[year_fct] # The recommended way.
-levels(year_fct)
-as.numeric(levels(year_fct))
-as.numeric(levels(year_fct))[year_fct] # The recommended way.
-```
-
-
-## Renaming factor levels
-
-```{r}
-surveys$sex <- factor(surveys$sex)
-plot(surveys$sex)
-```
-
-```{r}
-surveys$sex <- addNA(surveys$sex)
-levels(surveys$sex)
-plot(surveys$sex)
-```
-
-```{r}
-levels(surveys$sex)[3] <- "Undetermined"
-levels(surveys$sex)
-plot(surveys$sex)
-```
-
-## Challenge: Renaming factor levels
-
-Q: Rename “F” and “M” to “female” and “male” respectively.
-
-Q: Now that we have renamed the factor level to “undetermined”, can you recreate the barplot such that “undetermined” is first (before “female”)?
-
-```{r}
-
-```
-
-
-## More challenges: data frames
-
-Q: We have seen how data frames are created when using `read_csv()`, but they can also be created by hand with the `data.frame()` function. There are a few mistakes in this hand-crafted data.frame. Can you spot and fix them? Don’t hesitate to experiment!
-
-```{r}
-animal_data <- data.frame(
-  animal = c(dog, cat, sea cucumber, sea urchin),
-  feel = c("furry", "squishy", "spiny"),
-  weight = c(45, 8 1.1, 0.8)
-)
-```
-
-Q: Can you predict the class for each of the columns in the following example? Check your guesses using str(country_climate):
-
-Q: Are they what you expected? Why? Why not?
-
-Q: What would you need to change to ensure that each column had the accurate data type?
-
-```{r}
-country_climate <- data.frame(
-  country = c("Canada", "Panama", "South Africa", "Australia"),
-  climate = c("cold", "hot", "temperate", "hot/temperate"),
-  temperature = c(10, 30, 18, "15"),
-  northern_hemisphere = c(TRUE, TRUE, FALSE, "FALSE"),
-  has_kangaroo = c(FALSE, FALSE, FALSE, 1)
-)
-```
-
-
 ## Formatting dates
 
 confirm that `surveys` data frame has separate columns for day, month, and year.
@@ -339,3 +203,144 @@ view(surveys[is.na(surveys$date), c("date", "day", "month", "year")])
 ```
 
 How should we deal with these NAs?
+
+
+## Factors
+
+```{r}
+summary(surveys$sex)
+surveys$sex <- factor(surveys$sex)
+summary(surveys$sex)
+```
+
+```{r}
+sex <- factor(c("male", "female", "female", "male"))
+sex # default: sort by alphabetical order
+levels(sex)
+nlevels(sex)
+```
+
+If we want male to be the first level:
+
+```{r}
+sex <- factor(sex, levels = c("male", "female"))
+levels(sex)
+```
+
+Factors are integers with labels
+
+```{r}
+class(sex)
+typeof(sex)
+```
+
+## Challenge: Factors
+
+Q: Change the columns taxa and genus in the surveys data frame into a factor.
+
+Q: Using the functions you learned before, can you find out…
+- How many rabbits were observed?
+- How many different genera are in the genus column?
+
+```{r}
+
+```
+
+
+## Converting factors
+
+```{r}
+sex
+as.character(sex)
+```
+
+
+```{r}
+year_fct <- factor(c(1990, 1983, 1977, 1998, 1990))
+```
+
+Let's say we want to convert `year_fct` to numeric.
+
+```{r}
+as.numeric(year_fct) # Wrong! And there is no warning...
+```
+
+
+```{r}
+as.numeric(as.character(year_fct)) # Works...
+
+# Breakdown
+as.character(year_fct)
+as.numeric(as.character(year_fct))
+```
+
+
+```{r}
+as.numeric(levels(year_fct))[year_fct] # The recommended way.
+
+# Breakdown
+levels(year_fct)
+as.numeric(levels(year_fct))
+as.numeric(levels(year_fct))[year_fct] # The recommended way.
+```
+
+
+## Renaming factor levels
+
+```{r}
+surveys$sex <- factor(surveys$sex)
+plot(surveys$sex)
+```
+
+```{r}
+surveys$sex <- addNA(surveys$sex)
+levels(surveys$sex)
+plot(surveys$sex)
+```
+
+```{r}
+levels(surveys$sex)[3] <- "Undetermined"
+levels(surveys$sex)
+plot(surveys$sex)
+```
+
+## Challenge: Renaming factor levels
+
+Q: Rename “F” and “M” to “female” and “male” respectively.
+
+Q: Now that we have renamed the factor level to “undetermined”, can you recreate the barplot such that “undetermined” is first (before “female”)?
+
+```{r}
+
+```
+
+
+## More challenges: data frames
+
+Q: We have seen how data frames are created when using `read_csv()`, but they can also be created by hand with the `data.frame()` function. There are a few mistakes in this hand-crafted data.frame. Can you spot and fix them? Don’t hesitate to experiment!
+
+```{r}
+animal_data <- data.frame(
+  animal = c(dog, cat, sea cucumber, sea urchin),
+  feel = c("furry", "squishy", "spiny"),
+  weight = c(45, 8 1.1, 0.8)
+)
+```
+
+Q: Can you predict the class for each of the columns in the following example? Check your guesses using str(country_climate):
+
+Q: Are they what you expected? Why? Why not?
+
+Q: What would you need to change to ensure that each column had the accurate data type?
+
+```{r}
+country_climate <- data.frame(
+  country = c("Canada", "Panama", "South Africa", "Australia"),
+  climate = c("cold", "hot", "temperate", "hot/temperate"),
+  temperature = c(10, 30, 18, "15"),
+  northern_hemisphere = c(TRUE, TRUE, FALSE, "FALSE"),
+  has_kangaroo = c(FALSE, FALSE, FALSE, 1)
+)
+```
+
+
