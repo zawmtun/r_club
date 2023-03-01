@@ -1,0 +1,205 @@
+---
+title: "Manipulating data"
+format: html
+editor_options: 
+  chunk_output_type: console
+---
+
+
+
+```{r}
+surveys <- read_csv("data_raw/portal_data_joined.csv")
+str(surveys)
+```
+
+- `select()`: subset columns
+- `filter()`: subset rows on conditions
+- `mutate()`: create new columns by using information from other columns
+- `group_by()` and `summarize()`: create summary statistics on grouped data
+- `arrange()`: sort results
+- `count()`: count discrete values
+
+## Select columns and filter rows
+
+Select columns `plot_id`, `species_id`, `weight` from `surveys` dataset.
+
+```{r}
+select(surveys, plot_id, species_id, weight)
+```
+
+Remove columns `record_id` and `species_id` from `surveys` dataset.
+
+```{r}
+select(surveys, -record_id, -species_id)
+```
+
+Select rows (observations) of the year 1995.
+
+```{r}
+filter(surveys, year == 1995)
+```
+
+## Pipes
+
+Consider the following commands.
+
+```{r}
+surveys2 <- filter(surveys, weight < 5)
+surveys_sml <- select(surveys2, species_id, sex, weight)
+```
+
+We can also nest functions together.
+
+```{r}
+surveys_sml <- select(filter(surveys, weight < 5), species_id, sex, weight)
+```
+
+Let's use pipe.
+
+```{r}
+# |> or %>%
+
+surveys |> 
+  filter(weight < 5) |> 
+  select(species_id, sex, weight)
+```
+
+
+```{r}
+surveys_sml <- surveys |> 
+  filter(weight < 5) |> 
+  select(species_id, sex, weight)
+
+surveys_sml
+```
+
+## Challenge
+
+Using pipes, subset the `surveys` data to include animals collected before 1995 and retain only the columns `year`, `sex`, and `weight.`
+
+```{r}
+
+```
+
+## Create new columns
+
+Create a new column of weight in kg.
+
+```{r}
+surveys |> 
+  mutate(weight_kg = weight / 1000)
+```
+
+
+### Challenge
+
+Create a new data frame from the `surveys` data that meets the following criteria: contains only the `species_id` column and a new column called `hindfoot_cm` containing the `hindfoot_length` values (currently in mm) converted to centimeters. In this `hindfoot_cm` column, there are no `NA`s and all values are less than 3.
+
+Hint: think about how the commands should be ordered to produce this data frame!
+
+```{r}
+
+```
+
+## Aggregate
+
+Get average weight by `sex`.
+
+```{r}
+surveys |> 
+  group_by(sex) |> 
+  summarize(mean_weight = mean(weight, na.rm = TRUE))
+```
+
+Get average weight by `sex` and `species_id`.
+
+```{r}
+surveys |> 
+  group_by(sex, species_id) |> 
+  summarize(mean_weight = mean(weight, na.rm = TRUE)) |> 
+  tail()
+```
+
+Get average and minimum weight by `sex` and `species_id`.
+
+```{r}
+surveys %>%
+  filter(!is.na(weight)) %>%
+  group_by(sex, species_id) %>%
+  summarize(mean_weight = mean(weight),
+            min_weight = min(weight))
+```
+
+Sort the results by `min_weight`.
+
+```{r}
+surveys %>%
+  filter(!is.na(weight)) %>%
+  group_by(sex, species_id) %>%
+  summarize(mean_weight = mean(weight),
+            min_weight = min(weight)) %>%
+  arrange(min_weight)
+```
+
+Sort the results by `min_weight` in descending order.
+
+```{r}
+surveys %>%
+  filter(!is.na(weight)) %>%
+  group_by(sex, species_id) %>%
+  summarize(mean_weight = mean(weight),
+            min_weight = min(weight)) %>%
+  arrange(desc(mean_weight))
+```
+
+## Counting
+
+```{r}
+surveys %>%
+    count(sex)
+```
+
+```{r}
+surveys %>%
+    group_by(sex) %>%
+    summarise(count = n())
+```
+
+```{r}
+surveys %>%
+    count(sex, sort = TRUE)
+```
+
+```{r}
+surveys %>%
+  count(sex, species)
+```
+
+
+```{r}
+surveys %>%
+  count(sex, species) %>%
+  arrange(species, desc(n))
+```
+
+### Challenge
+
+1. How many animals were caught in each plot_type surveyed?
+
+```{r}
+
+```
+
+2. Use group_by() and summarize() to find the mean, min, and max hindfoot length for each species (using species_id). Also add the number of observations (hint: see ?n).
+
+```{r}
+
+```
+
+3. What was the heaviest animal measured in each year? Return the columns year, genus, species_id, and weight.
+
+```{r}
+
+```
+
+## Reshaping data
