@@ -232,13 +232,18 @@ library(lubridate)
 my_date <- ymd("2015-01-01")
 my_date
 str(my_date)
+my_date_chr <- as.character(my_date)
+my_date_chr
+str(my_date_chr)
 ```
 
 Try the wrong way.
 
 ```{r}
 my_date <- ymd("2015-13-01")
+my_date <- ydm("2015-13-01")
 my_date
+
 ```
 
 Paste three numbers together.
@@ -290,6 +295,7 @@ How should we deal with these NAs?
 
 ```{r}
 summary(surveys$sex)
+class(surveys$sex)
 surveys$sex <- factor(surveys$sex)
 summary(surveys$sex)
 ```
@@ -324,7 +330,12 @@ Q: Using the functions you learned before, can you find out…
 - How many different genera are in the genus column?
 
 ```{r}
+surveys$taxa <- factor(surveys$taxa)
+surveys$genus <- factor(surveys$genus)
 
+summary(surveys$taxa)
+summary(surveys$genus)
+nlevels(surveys$genus)
 ```
 
 
@@ -332,12 +343,14 @@ Q: Using the functions you learned before, can you find out…
 
 ```{r}
 sex
+class(sex)
 as.character(sex)
 ```
 
 
 ```{r}
 year_fct <- factor(c(1990, 1983, 1977, 1998, 1990))
+year_fct
 ```
 
 Let's say we want to convert `year_fct` to numeric.
@@ -371,6 +384,9 @@ as.numeric(levels(year_fct))[year_fct] # The recommended way.
 ```{r}
 surveys$sex <- factor(surveys$sex)
 plot(surveys$sex)
+summary(surveys$sex)
+
+plot(as.character(surveys$sex))
 ```
 
 ```{r}
@@ -392,7 +408,23 @@ Q: Rename “F” and “M” to “female” and “male” respectively.
 Q: Now that we have renamed the factor level to “undetermined”, can you recreate the barplot such that “undetermined” is first (before “female”)?
 
 ```{r}
-
+surveys <- read_csv("portal_data_joined.csv")
+class(surveys$sex)
+surveys$sex <- factor(surveys$sex)
+class(surveys$sex)
+summary(surveys$sex)
+surveys$sex <- addNA(surveys$sex)
+levels(surveys$sex)[3] <- "Undetermined"
+summary(surveys$sex)
+surveys$sex <- factor(surveys$sex,
+                      levels = c("F", "M", "Undetermined"),
+                      labels = c("Female", "Male", "Undetermined"))
+summary(surveys$sex)
+plot(surveys$sex)
+levels(surveys$sex)
+surveys$sex <- factor(surveys$sex,
+                      levels = c("Undetermined", "Female", "Male"))
+plot(surveys$sex)
 ```
 
 
