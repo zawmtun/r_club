@@ -5,9 +5,13 @@ editor_options:
   chunk_output_type: console
 ---
 
+```{r}
+library(tidyverse)
+```
+
 
 ```{r}
-surveys <- read_csv("data_raw/portal_data_joined.csv")
+surveys <- read_csv("ex/portal_data_joined.csv")
 str(surveys)
 ```
 
@@ -35,7 +39,16 @@ select(surveys, -record_id, -species_id)
 Select rows (observations) of the year 1995.
 
 ```{r}
+head(surveys$year == 1995)
+length(surveys$year == 1995)
 filter(surveys, year == 1995)
+filter(surveys, year != 1995)
+# == equal
+# != unequal
+# >
+# >=
+# <
+# <
 ```
 
 ## Pipes
@@ -58,8 +71,12 @@ Let's use pipe.
 ```{r}
 # |> or %>%
 
-surveys | >
+surveys |>
   filter(weight < 5) |> 
+  select(species_id, sex, weight)
+
+surveys %>%
+  filter(weight < 5) %>%
   select(species_id, sex, weight)
 ```
 
@@ -77,7 +94,11 @@ surveys_sml
 Using pipes, subset the `surveys` data to include animals collected before 1995 and retain only the columns `year`, `sex`, and `weight.`
 
 ```{r}
+answer <- surveys |> 
+  filter(year < 1995) |> 
+  select(year, sex, weight)
 
+answer
 ```
 
 ## Create new columns
@@ -85,8 +106,10 @@ Using pipes, subset the `surveys` data to include animals collected before 1995 
 Create a new column of weight in kg.
 
 ```{r}
-surveys |> 
+dat <- surveys |> 
   mutate(weight_kg = weight / 1000)
+
+view(dat)
 ```
 
 
@@ -97,7 +120,13 @@ Create a new data frame from the `surveys` data that meets the following criteri
 Hint: think about how the commands should be ordered to produce this data frame!
 
 ```{r}
+answer <- surveys |> 
+  mutate(hindfoot_cm = hindfoot_length/10) |> 
+  filter(!is.na(hindfoot_length)) |> 
+  filter(hindfoot_cm < 3) |> 
+  select(species_id, hindfoot_cm)
 
+answer
 ```
 
 ## Aggregate
@@ -108,15 +137,21 @@ Get average weight by `sex`.
 surveys |> 
   group_by(sex) |> 
   summarize(mean_weight = mean(weight, na.rm = TRUE))
+
+surveys |> 
+  summarize(mean_weight = mean(weight, na.rm = TRUE))
+
+mean(surveys$weight, na.rm = TRUE)
 ```
 
 Get average weight by `sex` and `species_id`.
 
 ```{r}
-surveys |> 
+dat <- surveys |> 
   group_by(sex, species_id) |> 
-  summarize(mean_weight = mean(weight, na.rm = TRUE)) |> 
-  tail()
+  summarize(mean_weight = mean(weight, na.rm = TRUE))
+
+View(dat)
 ```
 
 Get average and minimum weight by `sex` and `species_id`.
@@ -148,7 +183,7 @@ surveys |>
   group_by(sex, species_id) |>
   summarize(mean_weight = mean(weight),
             min_weight = min(weight)) |>
-  arrange(desc(mean_weight))
+  arrange(desc(min_weight))
 ```
 
 ## Counting
@@ -156,6 +191,9 @@ surveys |>
 ```{r}
 surveys |>
     count(sex)
+
+class(surveys$sex)
+summary(surveys$sex)
 ```
 
 ```{r}
