@@ -1,0 +1,227 @@
+---
+title: "Data Visualisation"
+format: html
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+library(tidyverse)
+```
+
+Read dataset.
+
+```{r}
+surveys_complete <- read_csv("surveys_complete.csv")
+```
+
+## Base plot
+
+```{r}
+ggplot(data = surveys_complete,
+       mapping = aes(x = weight, y = hindfoot_length))
+```
+
+Add geom layer.
+
+```{r}
+ggplot(data = surveys_complete,
+       mapping = aes(x = weight, y = hindfoot_length)) +
+  geom_point()
+```
+
+Assign plot to a name.
+
+```{r}
+surveys_plot <- ggplot(data = surveys_complete,
+       mapping = aes(x = weight, y = hindfoot_length))
+
+surveys_plot +
+  geom_point()
+```
+
+## Build your plots iteratively
+
+Below is the earlier plot.
+
+```{r}
+ggplot(data = surveys_complete,
+       aes(x = weight, y = hindfoot_length)) +
+  geom_point()
+```
+
+The points are too cramped and overlapped. Let's make the points more transparent by adding a transparency parameter (alpha) in `geom_point()` that ranges from 0 (totally transparent) to 1 (totally opaque).
+
+```{r}
+ggplot(data = surveys_complete,
+       aes(x = weight, y = hindfoot_length)) +
+  geom_point(alpha = 0.1)
+```
+
+Now add a colour to all points.
+
+```{r}
+ggplot(data = surveys_complete,
+       aes(x = weight, y = hindfoot_length)) +
+  geom_point(alpha = 0.1, colour = "blue")
+```
+
+We can also add colours by species (use `species_id`). When the parameter value is a variable, we need to wrap `colour` in `aes()`.
+
+```{r}
+ggplot(data = surveys_complete,
+       aes(x = weight, y = hindfoot_length)) +
+  geom_point(alpha = 0.1, aes(colour = species_id))
+```
+
+## Boxplot
+
+```{r}
+ggplot(data = surveys_complete,
+       mapping = aes(x = species_id, y = weight)) +
+    geom_boxplot()
+```
+
+We can overlay points to the corresponding boxplot to have a better idea of the distribution of the measurements.
+
+```{r}
+ggplot(data = surveys_complete, mapping = aes(x = species_id, y = weight)) +
+    geom_boxplot(alpha = 0) +
+    geom_jitter(alpha = 0.3, color = "tomato")
+```
+
+Now the boxplot is behind the points. Let's change the code to bring the boxplot to the front.
+
+```{r}
+
+```
+
+## Challenge
+
+Boxplots are useful summaries, but hide the shape of the distribution. For example, if there is a bimodal distribution, it would not be observed with a boxplot. An alternative to the boxplot is the violin plot (sometimes known as a beanplot), where the shape (of the density of points) is drawn.
+
+Replace the box plot with a violin plot; see `geom_violin()`.
+
+```{r}
+
+```
+
+In many types of data, it is important to consider the scale of the observations. For example, it may be worth changing the scale of the axis to better distribute the observations in the space of the plot. Changing the scale of the axes is done similarly to adding/modifying other components (i.e., by incrementally adding commands). Try making these modifications:
+
+Represent weight on the log10 scale; see `scale_y_log10()`.
+
+```{r}
+
+```
+
+So far, we’ve looked at the distribution of weight within species. Try making a new plot to explore the distribution of another variable within each species.
+* Create boxplot for hindfoot_length. Overlay the boxplot layer on a jitter layer to show actual measurements.
+* Add color to the data points on your boxplot according to the plot from which the sample was taken (plot_id).
+
+Hint: Check the class for plot_id. Consider changing the class of plot_id from integer to factor. Why does this change how R makes the graph?
+
+```{r}
+
+```
+
+## Time series plots
+
+Let's count the number of animals per year for each genus.
+
+```{r}
+yearly_counts <- surveys_complete |> 
+  count(year, genus)
+```
+
+Timelapse data are often visualised as a line plot with years on x-axis and counts on y-axis.
+
+```{r}
+ggplot(data = yearly_counts, aes(x = year, y = n)) +
+     geom_line()
+```
+
+But this does not work becuase we plotted data for all the genera together. We need to tell ggplot to draw a line for each genus by adding `group` aesthetic: `griuop = genu`
+
+```{r}
+ggplot(data = yearly_counts, aes(x = year, y = n, group = genus)) +
+    geom_line()
+```
+
+Let's tell ggplot to plot each genus using a distinct colour.
+
+```{r}
+ggplot(data = yearly_counts, aes(x = year, y = n,
+                                 group = genus, colour = genus)) +
+    geom_line()
+```
+
+Since the first argument of `ggplot()` is a dataframe for the plot, we can use to add data to `ggplot()`.
+
+```{r}
+yearly_counts |> 
+  ggplot(aes(x = year, y = n,
+             group = genus, colour = genus)) +
+  geom_line()
+```
+
+If we don't want to save a separate dataframe `yearly_counts`, we can just pipe its code directly into `ggplot()` like this.
+
+```{r}
+surveys_complete |> 
+  count(year, genus) |> 
+  ggplot(aes(x = year, y = n,
+             group = genus, colour = genus)) +
+  geom_line()
+```
+
+## Faceting
+
+Let's facet our data by `genus` using `facet_wrap()`.
+
+```{r}
+ggplot(data = yearly_counts, aes(x = year, y = n)) +
+    geom_line() +
+    facet_wrap(facets = vars(genus))
+```
+
+Note that we need to wrap the facetting variable in `vars()`.
+
+Now, let's disaggregate data in each facet by sex using `facet_wrap()`.
+
+```{r}
+yearly_sex_counts <- surveys_complete %>%
+                      count(year, genus, sex)
+
+ggplot(yearly_sex_counts, aes(x = year, y = n, color = sex)) +
+  geom_line() +
+  facet_wrap(facets =  vars(genus))
+```
+
+`facet_wrap()` show the panels in one dimension with titles at the top.
+
+We can also facet by both sex and genus. Now, we want to facet the plot in two dimensions: genus on x-axis (panel title at the top) and sex on y-axis (panel title on the side). For that, we need to use `facet_wrap()`.
+
+```{r}
+ggplot(yearly_sex_counts, aes(x = year, y = n, color = sex)) +
+  geom_line() +
+  facet_grid(rows = vars(sex), cols =  vars(genus))
+```
+
+You can also show the panels by rows.
+
+```{r}
+ggplot(yearly_sex_counts, aes(x = year, y = n, color = sex)) +
+  geom_line() +
+  facet_grid(rows = vars(genus))
+```
+
+Or by columns.
+
+```{r}
+ggplot(yearly_sex_counts, aes(x = year, y = n, color = sex)) +
+  geom_line() +
+  facet_grid(cols = vars(genus))
+```
+
+
+
