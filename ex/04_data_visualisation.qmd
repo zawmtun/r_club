@@ -34,7 +34,9 @@ Assign plot to a name.
 
 ```{r}
 surveys_plot <- ggplot(data = surveys_complete,
-       mapping = aes(x = weight, y = hindfoot_length))
+                       mapping = aes(x = weight, y = hindfoot_length))
+
+surveys_plot
 
 surveys_plot +
   geom_point()
@@ -93,7 +95,9 @@ ggplot(data = surveys_complete, mapping = aes(x = species_id, y = weight)) +
 Now the boxplot is behind the points. Let's change the code to bring the boxplot to the front.
 
 ```{r}
-
+ggplot(data = surveys_complete, mapping = aes(x = species_id, y = weight)) +
+    geom_jitter(alpha = 0.3, color = "tomato") +
+    geom_boxplot(alpha = 0)
 ```
 
 ## Challenge
@@ -103,7 +107,8 @@ Boxplots are useful summaries, but hide the shape of the distribution. For examp
 Replace the box plot with a violin plot; see `geom_violin()`.
 
 ```{r}
-
+ggplot(data = surveys_complete, mapping = aes(x = species_id, y = weight)) +
+  geom_violin()
 ```
 
 In many types of data, it is important to consider the scale of the observations. For example, it may be worth changing the scale of the axis to better distribute the observations in the space of the plot. Changing the scale of the axes is done similarly to adding/modifying other components (i.e., by incrementally adding commands). Try making these modifications:
@@ -111,17 +116,22 @@ In many types of data, it is important to consider the scale of the observations
 Represent weight on the log10 scale; see `scale_y_log10()`.
 
 ```{r}
-
+ggplot(data = surveys_complete, mapping = aes(x = species_id, y = weight)) +
+  geom_violin() +
+  scale_y_log10() +
+  labs(y = "Weight (Log scale)", x = "Species")
 ```
 
-So far, we’ve looked at the distribution of weight within species. Try making a new plot to explore the distribution of another variable within each species.
-* Create boxplot for hindfoot_length. Overlay the boxplot layer on a jitter layer to show actual measurements.
-* Add color to the data points on your boxplot according to the plot from which the sample was taken (plot_id).
+So far, we've looked at the distribution of weight within species. Try making a new plot to explore the distribution of another variable within each species. \* Create boxplot for hindfoot_length. Overlay the boxplot layer on a jitter layer to show actual measurements. \* Add color to the data points on your boxplot according to the plot from which the sample was taken (plot_id).
 
 Hint: Check the class for plot_id. Consider changing the class of plot_id from integer to factor. Why does this change how R makes the graph?
 
 ```{r}
-
+box_plot_species <- ggplot(data = surveys_complete,
+                           mapping = aes(x = species_id, y = hindfoot_length)) +
+  geom_jitter(alpha = 0.2, colour = c("#009E4F")) +
+  geom_boxplot(alpha = 0) +
+  labs(y = NULL, x = "Species", title = "Hindfoot length distribution by species")
 ```
 
 ## Time series plots
@@ -190,7 +200,7 @@ Now, let's disaggregate data in each facet by sex using `facet_wrap()`.
 
 ```{r}
 yearly_sex_counts <- surveys_complete %>%
-                      count(year, genus, sex)
+  count(year, genus, sex)
 
 ggplot(yearly_sex_counts, aes(x = year, y = n, color = sex)) +
   geom_line() +
@@ -223,5 +233,208 @@ ggplot(yearly_sex_counts, aes(x = year, y = n, color = sex)) +
   facet_grid(cols = vars(genus))
 ```
 
+## Themes
+
+In addition geoms and facets, we can change how the plot looks like background colour, axis grids, font type/size, etc by using generic `theme()` function, as we will see below. There are also pre-defined themes already built in `ggplot2`. In the code below, `theme_bw()` produce a white background and dark panel borders.
+
+```{r}
+ggplot(data = yearly_sex_counts,
+       mapping = aes(x = year, y = n, color = sex)) +
+  geom_line() +
+  facet_wrap(vars(genus)) +
+  theme_bw()
+```
+
+There are several other pre-defined themes that come with `ggplot2`.
+
+-   `theme_linedraw()`
+
+-   `theme_light()`
+
+-   `theme_dark()`
+
+-   `theme_minimal()`
+
+-   `theme_classic()`
+
+-   `theme_void()`
+
+The `ggthemes` package provides a wide variety of options.
+
+## Challenges
+
+Try different pre-defined themes from ggplot2 in the code below:
+
+```{r}
+ggplot(data = yearly_sex_counts,
+       mapping = aes(x = year, y = n, color = sex)) +
+  geom_line() +
+  facet_wrap(vars(genus)) +
+  theme_bw()
+```
+
+Use what you just learned to create a plot that depicts how the average weight of each species changes through the years.
+
+```{r}
 
 
+```
+
+## Customisation
+
+Take a look at the plot below and think of ways you could improve it.
+
+```{r}
+ggplot(data = yearly_sex_counts, aes(x = year, y = n, color = sex)) +
+  geom_line() +
+  facet_wrap(vars(genus)) +
+  theme_bw()
+```
+
+First, let's change the axis titles to something more informative than `n` and `year`. Then, add a plot title. We will use `labs()` for that.
+
+```{r}
+ggplot(data = yearly_sex_counts, aes(x = year, y = n, color = sex)) +
+  geom_line() +
+  facet_wrap(vars(genus)) +
+  labs(title = "Observed genera through time",
+       x = "Year of observation",
+       y = "Number of individuals") +
+  theme_bw()
+```
+
+Next, let's increase the font size to the texts more readable. We can do it using the generic `theme()` function.
+
+```{r}
+ggplot(data = yearly_sex_counts,
+       mapping = aes(x = year, y = n, color = sex)) +
+  geom_line() +
+  facet_wrap(vars(genus)) +
+  labs(title = "Observed genera through time",
+       x = "Year of observation",
+       y = "Number of individuals") +
+  theme_bw() +
+  theme(text = element_text(size = 16))
+```
+
+Years on x-axis are not readable at the moment as the years overlap. Let's change the orientation of these axis labels to an angle. We can also experiment with different angles.
+
+We can also change the facet label text (`strip.text`) to italicize the genus names.
+
+```{r}
+ggplot(data = yearly_sex_counts,
+       mapping = aes(x = year, y = n, color = sex)) +
+  geom_line() +
+  facet_wrap(vars(genus)) +
+  labs(title = "Observed genera through time",
+       x = "Year of observation",
+       y = "Number of individuals") +
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(colour = "grey20", size = 12,
+                               angle = 45, hjust = 0.9, vjust = 0.9),
+    axis.text.y = element_text(colour = "grey20", size = 12),
+    strip.text = element_text(face = "italic"),
+    text = element_text(size = 16)
+  )
+```
+
+If you want to apply the same theme to other plots, we can save the theme as a R object and pipe it to other ggplot2 objects like this:
+
+```{r}
+my_theme <- theme_bw() +
+  theme(
+    axis.text.x = element_text(colour = "grey20", size = 12,
+                               angle = 45, hjust = 0.9, vjust = 0.9),
+    axis.text.y = element_text(colour = "grey20", size = 12),
+    strip.text = element_text(face = "italic"),
+    text = element_text(size = 16)
+  )
+
+ggplot(surveys_complete, aes(x = species_id, y = hindfoot_length)) +
+  geom_boxplot() +
+  my_theme
+```
+
+## Challenges
+
+With all of this information in hand, please take another five minutes to either improve one of the plots generated in this exercise or create a beautiful graph of your own. Use the RStudio [**`ggplot2`** cheat sheet](https://www.rstudio.com/wp-content/uploads/2016/11/ggplot2-cheatsheet-2.1.pdf) for inspiration.
+
+Here are some ideas:
+
+-   See if you can change the thickness of the lines.
+
+-   Can you find a way to change the name of the legend? What about its labels?
+
+-   Try using a different color palette (see <https://www.cookbook-r.com/Graphs/Colors_(ggplot2)/>).
+
+## Arranging plots
+
+Faceting is great for splitting a plot into multiple plots of the same type but sometimes we want to put together different plot types into one. In that case, we can use `patchwork` package to combine multiple ggplot2 objects. We can install the package using the following command.
+
+```{r}
+install.packages("patchwork")
+```
+
+After loading patchwork package, we now can use `+` to combine two plots side-by-side and use `/` to put together the plots vertically. `plot_layout()` can determine how much space each plot uses.
+
+```{r}
+library(patchwork)
+
+plot_weight <- ggplot(surveys_complete, aes(x = species_id, y = weight)) +
+  geom_boxplot() +
+  labs(x = "Species", y = expression(log[10](Weight))) +
+  scale_y_log10()
+
+plot_count <- ggplot(yearly_counts, aes(x = year, y = n, color = genus)) +
+  geom_line() +
+  labs(x = "Year", y = "Abundance")
+
+plot_weight / plot_count + 
+  plot_layout(heights = c(3, 2))
+```
+
+`patchwork` can also produce more complex layouts. Check out [patchwork website](https://patchwork.data-imaginist.com/) for more examples.
+
+## Exporting plots
+
+After creating a plot, let's save it as a file. `ggplot2` supports many formats: png, jpeg, pdf, and svg are popular.
+
+Export button in the Plots pane allows us to save the plot at low resolution by default. You can change the `height`, `width`, and `dpi` in the export box to save the plot at higher resolution.
+
+If you want to save the plot programmatically, we can use `ggsave()` function to do it. We can also easily add the dimension parameters: `height`, `width`, and `dpi`.
+
+```{r}
+my_plot <- ggplot(yearly_sex_counts, aes(x = year, y = n, color = sex)) +
+  geom_line() +
+  facet_wrap(vars(genus)) +
+  labs(title = "Observed genera through time",
+       x = "Year of observation",
+       y = "Number of individuals") +
+  theme_bw() +
+  theme(axis.text.x = element_text(colour = "grey20", size = 12, angle = 90,
+                                   hjust = 0.5, vjust = 0.5),
+        axis.text.y = element_text(colour = "grey20", size = 12),
+        text = element_text(size = 16))
+
+ggsave("name_of_file.png", my_plot, width = 15, height = 10)
+```
+
+This also works for plots combined with patchwork.
+
+```{r}
+plot_combined <- plot_weight / plot_count +
+  plot_layout(heights = c(3, 2))
+
+ggsave("plot_combined.png", plot_combined, width = 10, dpi = 300)
+```
+
+## Resources
+
+If you want to learn more about ggplot2, here are some free resources:
+
+-   [`ggplot2` package webpage](https://ggplot2.tidyverse.org/)
+
+-   [`ggplot2` book](https://ggplot2-book.org/)
+
+-   [**`ggplot2`** extensions website](https://exts.ggplot2.tidyverse.org/)

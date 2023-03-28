@@ -367,13 +367,16 @@ species_counts <- surveys_complete |>
     count(species_id) |>
     filter(n >= 50)
 
+species_counts$species_id
+
 ## Only keep the most common species
 surveys_complete <- surveys_complete |>
   filter(species_id %in% species_counts$species_id)
+
 ```
 
 
 ```{r}
-write_csv(surveys_complete, file = "data/surveys_complete.csv")
+write_csv(surveys_complete, file = "ex/surveys_complete.csv")
 ```
 
