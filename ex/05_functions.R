@@ -199,4 +199,80 @@ draw_bar_chart(mtcars, vs) /
   draw_bar_chart(mtcars, gear) /
   draw_bar_chart(mtcars, carb)
 
+# Basics ----
+# Great for reusing code
+die <- 1:6
+die
 
+die - 1
+die / 2
+die * die
+
+weird_die <- 1:5
+die + weird_die
+
+new_weird_die <- 1:2
+die + new_weird_die
+
+new_new_weird_die <- 1:3
+die + new_new_weird_die
+
+1 + 1
+sum(c(1, 1))
+
+balls <- c("red", "green", "blue", "yellow")
+sample(balls, size = 2, replace = TRUE)
+sample(die, size = 10, replace = TRUE)
+
+zaw_roll2 <- function(nums = 1:6) {
+  dice <- sample(nums, size = 2, replace = TRUE)
+  sum(dice)
+}
+
+zaw_roll2(1:10)
+
+# Create a function to roll 3 dices repeat it 10 times using replicate()
+
+zaw_roll3 <- function(nums = 1:6) {
+  dice <- sample(nums, size = 3, replace = TRUE)
+  sum(dice)
+}
+
+zaw_roll3()
+
+res <- replicate(1e6, zaw_roll3())
+
+library(tidyverse)
+
+ggplot(data.frame(res), aes(x = res)) +
+  geom_histogram(binwidth = 1)
+
+# Dataframes
+
+dat <- mtcars
+
+dat |> 
+  group_by(gear) |> 
+  summarise(m = mean(mpg))
+
+get_avg <- function(data, group_var, value_var) {
+  data |> 
+    group_by({{group_var}}) |> 
+    summarise(m = mean({{value_var}}),
+              sd = sd({{value_var}}))
+}
+
+get_avg(data = mtcars,
+        group_var = vs,
+        value_var = hp)
+
+data()
+air <- airquality
+
+# Write a function to get group-wise median, min, max
+
+dat <- iris
+
+get_med <- function() {
+  
+}
