@@ -25,14 +25,14 @@ dat
 dput(dat)
 
 # Simulation
-(x <- rbinom(n = 20, size = 1, prob = 0.3))
+(x <- rbinom(n = 20, size = 1, prob = 0.5))
 table(x)
 
 set.seed(30)
-(x <- rbinom(n = 20, size = 1, prob = 0.3))
+(x <- rbinom(n = 20, size = 1, prob = 0.5))
 table(x)
 
-set.seed(30)
+set.seed(100)
 (x <- rnorm(n = 20, mean = 0, sd = 1))
 hist(x)
 

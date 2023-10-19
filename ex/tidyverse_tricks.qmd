@@ -1,0 +1,517 @@
+---
+title: "10 Handy Tidyverse Tricks"
+format: html
+editor: source
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+library(tidyverse)
+library(palmerpenguins)
+library(epiR)
+library(broom)
+library(medicaldata)
+library(fuzzyjoin)
+```
+
+# 1. Putting it all in a frame
+
+## Convert a vector to a dataframe
+
+```{r}
+num <- c("a", "b", "c", "d")
+num
+enframe(num)
+```
+
+## Named vectors are more useful
+
+```{r}
+names(num) <- c("x", "y", "z", "e")
+enframe(num)
+enframe(num, name = "letter", value = "number")
+```
+
+## A list column with dataframes
+
+```{r}
+dat1 <- mtcars
+dat2 <- iris
+dat3 <- penguins
+
+l <- list(dat1, dat2, dat3)
+names(l) <- c("mtcars", "iris", "penguins")
+
+dat_l <- enframe(l, name = "data_name", "dataset")
+dat_l
+View(dat_l)
+deframe(dat_l)
+```
+
+## A list column with lists
+
+```{r}
+dat <- penguins |> 
+  select(bill_length_mm, bill_depth_mm, body_mass_g) |> 
+  map(summary)
+
+dat |> class()
+length(dat)
+enframe(dat) 
+```
+
+# 2. Counting
+
+## Number of rows
+
+```{r}
+penguins |> 
+  group_by(species) |> 
+  summarise(n = n(), .groups = "drop")
+
+penguins |> count(species)
+```
+
+## Take the sum
+
+```{r}
+penguins |> 
+  group_by(island) |> 
+  summarise(total_weight_g = sum(body_mass_g, na.rm = TRUE),
+            .groups = "drop")
+
+penguins |> count(island, wt = body_mass_g)
+penguins |> count(island, wt = body_mass_g, name = "total_weight_g")
+```
+
+## Count the missing values
+
+```{r}
+penguins |> count(is.na(sex))
+```
+
+
+## Add a column of counts
+
+```{r}
+dat <- penguins |> 
+  group_by(species) |> 
+  mutate(n = n()) |> 
+  ungroup()
+
+View(dat)
+
+dat1 <- penguins |> 
+  add_count(species)
+
+View(dat1)
+```
+
+# 3. Operate across() many columns
+
+## mutate() to modify an existing column
+
+Form 1
+
+```{r}
+dat <- penguins |> 
+  mutate(
+    across(bill_length_mm:body_mass_g,
+           replace_na, 0),
+    sex = fct_explicit_na(sex, na_level = "Unknown")
+  )
+
+View(dat)
+```
+
+Form 2
+
+```{r}
+dat <- penguins |> 
+  mutate(
+    across(bill_length_mm:body_mass_g,
+           ~ replace_na(., 0)),
+    sex = fct_explicit_na(sex, na_level = "Unknown")
+  )
+
+dat
+```
+
+## mutate() to create new columns
+
+Form 1
+
+```{r}
+dat <- penguins |> 
+  mutate(
+    across(bill_length_mm:body_mass_g,
+           list(new = replace_na), 0),
+    sex = fct_explicit_na(sex, na_level = "Unknown")
+  )
+
+View(dat)
+```
+
+Form 2
+
+```{r}
+dat <- penguins |> 
+  mutate(
+    across(bill_length_mm:body_mass_g,
+           list(new = ~ replace_na(., 0))),
+    sex = fct_explicit_na(sex, na_level = "Unknown")
+  )
+
+View(dat)
+```
+
+## summarise() to aggregate columns
+
+Form 1: use the same column names
+
+```{r}
+dat1 <- penguins |> 
+  group_by(species, island) |> 
+  summarise(
+    across(bill_length_mm:body_mass_g,
+           mean, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+dat1
+```
+
+Form 1: modify column names
+
+```{r}
+dat1 <- penguins |> 
+  group_by(species, island) |> 
+  summarise(
+    across(bill_length_mm:body_mass_g,
+           list(new = mean), na.rm = TRUE),
+    .groups = "drop"
+  )
+
+dat1
+```
+
+Form 2: use the same column names
+
+```{r}
+dat1 <- penguins |> 
+  group_by(species, island) |> 
+  summarise(
+    across(bill_length_mm:body_mass_g,
+           ~ mean(., na.rm = TRUE)),
+    .groups = "drop"
+  )
+
+dat1
+```
+
+Form 2: use the same column names
+
+```{r}
+dat1 <- penguins |> 
+  group_by(species, island) |> 
+  summarise(
+    across(bill_length_mm:body_mass_g,
+           list(new = ~ mean(., na.rm = TRUE))),
+    .groups = "drop"
+  )
+
+dat1
+```
+
+# 4. List columns are awesome!
+
+Form 1
+
+```{r}
+dat <- penguins |> 
+  group_by(species) |> 
+  nest() |> 
+  rowwise() |> 
+  mutate(
+    mod = list(
+      lm(body_mass_g ~ sex, data = data)
+    ),
+    pred = list(predict(mod))
+  ) |> 
+  ungroup()
+
+dat
+
+dat |> pull(mod)
+```
+
+Form 2
+
+```{r}
+dat <- penguins |> 
+  nest_by(species) |> 
+  mutate(
+    mod = list(
+      lm(body_mass_g ~ sex, data = data)
+    ),
+    pred = list(predict(mod))
+  ) |> 
+  ungroup()
+
+dat
+
+dat |> pull(mod)
+```
+
+# 5. Separate a column into pieces
+
+## Prepare data
+
+```{r}
+dat <- tibble(
+  name = paste(letters[1:6], letters[5:10], letters[11:16], letters[21:26], sep = "-"),
+  value = 1:6
+)
+
+dat
+```
+
+## separate() into multiple columns
+
+```{r}
+dat |> 
+  separate(col = name,
+           into = c("first", "second", "third", "fourth"),
+           sep = "-")
+
+dat |> 
+  separate(col = name,
+           into = c("first", "second"),
+           sep = "-",
+           extra = "merge")
+
+dat |> 
+  separate(col = name,
+           into = c("first", "second", "third"),
+           sep = "-",
+           extra = "merge")
+```
+
+## separate_rows() into multiple rows
+
+```{r}
+dat
+
+new <- dat |> 
+  separate_rows(name, sep = "-")
+
+print(new, n = 25)
+```
+
+# 6. reduce() them to one
+
+```{r}
+v <- 1:4
+v
+sum(v)
+
+1 + 2 + 3 + 4
+reduce(v, `+`)
+```
+
+```{r}
+gender <- tibble(id = letters[1:6], gender = sample(c("M", "F"), 6, TRUE))
+age_cm <- tibble(id = letters[1:6], age = runif(6, min = 150, max = 190))
+bmi <- tibble(id = letters[1:6], bmi = runif(6, min = 15, max = 40))
+
+gender
+age_cm
+bmi
+
+l <- list(gender, age_cm, bmi)
+l
+
+l |> reduce(left_join, by = "id")
+```
+
+# 7. Fuzzy join
+
+## Prepare data
+
+```{r}
+dat1 <- tibble(
+  district = c("Aberdeen City", "Aberdeenshire", 
+               "Abertawe - Swansea", "Adur District", "Allerdale District (B)", 
+               "Amber Valley District (B)", "Angus", "Argyll and Bute", "Arun District", 
+               "Ashfield District", "Ashford District (B)", "Babergh District", 
+               "Barking and Dagenham London Boro", "Barnet London Boro", "Barnsley District (B)",
+                "Barrow-in-Furness District (B)", "Basildon District (B)",
+               "Basingstoke and Deane District (B)", 
+               "Bassetlaw District", "Bath and North East Somerset", "Bedford (B)", 
+               "Bexley London Boro", "Birmingham District (B)", "Blaby District", 
+               "Blackburn with Darwen (B)", "Blackpool (B)", "Blaenau Gwent - Blaenau Gwent", 
+               "Bolsover District", "Bolton District (B)", "Boston District (B)", 
+               "Bournemouth, Christchurch and Poole", "Bracknell Forest (B)", 
+               "Bradford District (B)", "Braintree District", "Breckland District", 
+               "Brent London Boro", "Brentwood District (B)",
+               "Bro Morgannwg - the Vale of Glamorgan", 
+               "Broadland District", "Bromley London Boro"),
+  pop1 = c(8L,  2L, 14L, 14L, 14L, 14L, 3L, 5L, 14L, 14L, 14L, 14L, 14L, 14L, 
+          14L, 14L, 14L, 14L, 14L, 14L, 14L, 14L, 14L, 14L, 14L, 14L, 14L, 
+          14L, 14L, 14L, 14L, 14L, 14L, 14L, 14L, 14L, 14L, 14L, 14L, 14L)
+)
+
+dat2 <- tibble(
+  district = c("Adur", "Allerdale", "Amber Valley", 
+               "Arun", "Ashfield", "Ashford", "Babergh", "Barking and Dagenham", 
+               "Barnet", "Barnsley", "Barrow-in-Furness", "Basildon", "Basingstoke and Deane", 
+               "Bassetlaw", "Bath and North East Somerset", "Bedford", "Bexley", 
+               "Birmingham", "Blaby", "Blackburn with Darwen", "Blackpool", 
+               "Blaenau Gwent", "Bolsover", "Bolton", "Boston",
+               "Bournemouth, Christchurch and Poole", 
+               "Bracknell Forest", "Bradford", "Braintree", "Breckland", "Brent", 
+               "Brentwood", "Bridgend", "Brighton and Hove", "Bristol, City of", 
+               "Broadland", "Bromley", "Bromsgrove", "Broxbourne", "Broxtowe"
+  ),
+  pop2 = c(63869, 97527, 126678, 159827, 127151, 
+          129281, 91401, 211998, 392140, 245199, 67137, 185862, 175729, 
+          116839, 192106, 171623, 247258, 1141374, 100421, 148942, 139305, 
+          69713, 79530, 285372, 69366, 395784, 121676, 537173, 151561, 
+          139329, 330795, 76550, 144876, 290395, 463405, 129464, 331096, 
+          98662, 96876, 113272)
+)
+```
+
+## Join data
+
+```{r}
+dat1
+dat2
+library(fuzzyjoin)
+
+dat_join <- stringdist_full_join(
+  dat1, dat2,
+  by = "district",
+  method = "jw", distance_col = "dist"
+) |> 
+  arrange(district.x, dist) |> 
+  group_by(district.x) |> 
+  slice(1) |> 
+  ungroup() |> 
+  mutate(district.y = if_else(dist < 0.25, district.y, NA_character_)) 
+
+dat_join
+```
+
+# 8. Permutations
+
+```{r}
+regimen <- LETTERS[1:5]
+gender <- c("M", "F")
+color <- c("red", "green", "blue")
+
+dat1 <- crossing(regimen, gender)
+print(dat1)
+
+dat2 <- crossing(regimen, gender, color)
+print(dat2, n = 30)
+
+# Base version
+expand.grid(regimen, gender)
+expand.grid(regimen, gender, color)
+```
+
+# 9. One two punch
+
+## Prepare data
+
+```{r}
+dat <- medicaldata::cytomegalovirus
+glimpse(dat)
+
+dat1 <- dat |> 
+  mutate(
+    across(c(cmv, prior.transplant), ~ if_else(. == 0, 2, .))
+  ) |> 
+  rename(tp = prior.transplant)
+```
+
+## Base R approach
+
+```{r}
+(data_table <- table(dat1$tp, dat1$cmv))
+res <- epi.2by2(data_table)
+res
+
+res_sum <- summary(res)
+res_sum$massoc.detail$RR.strata.wald
+```
+
+## Tidy approach
+
+```{r}
+data_table <- dat1 |> 
+  select(tp, cmv) |> 
+  table()
+
+data_table
+
+dat1 |> 
+  select(tp, cmv) |> 
+  table() |> 
+  epi.2by2() |> 
+  tidy() |> 
+  filter(str_detect(term, "^RR"))
+```
+
+# 10. Visualising categoricla variables
+
+## Prepare data
+
+```{r}
+dat <- ggplot2::mpg |> 
+  rename(manu = manufacturer)
+
+glimpse(dat)
+
+dat |> count(manu)
+```
+
+## Plot all manufacturers
+
+```{r}
+dat_count <- dat |> 
+  count(manu)
+
+dat_count
+
+ggplot(dat_count, aes(x = n, y = manu)) +
+  geom_col() +
+  theme_light()
+```
+
+## Lump small groups together
+
+```{r}
+dat1 <- dat |> 
+  mutate(
+    manu = factor(manu),
+    manu = fct_lump_n(manu, 5)
+  )
+
+dat_count <- dat1 |> 
+  count(manu)
+
+ggplot(dat_count, aes(x = n, y = manu)) +
+  geom_col() +
+  theme_light()
+
+ggplot(dat_count, aes(x = n, y = fct_reorder(manu, n))) +
+  geom_col() +
+  theme_light()
+
+ggplot(dat_count, aes(x = n, y = fct_reorder(manu, n, .desc = TRUE))) +
+  geom_col() +
+  theme_light()
+```

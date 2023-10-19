@@ -1,0 +1,292 @@
+---
+title: "A Gentle Introduction to Statistics with R"
+author: "ZMT"
+format:
+  html:
+    toc: true
+embed-resources: true
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r include=FALSE}
+knitr::opts_chunk$set(message = FALSE, warning = FALSE)
+```
+
+## Learning objectives
+
+After completing this session, you should be able to:
+
+1.  Know RStudio interface.
+
+2.  Run code interactively.
+
+3.  Run code from a script.
+
+4.  How to make comments in a script and understand why that is useful.
+
+5.  How to read a csv data into R and view it.
+
+6.  Know how to make basic plots.
+
+7.  Know the basic verbs of `dplyr`.
+
+8.  Know how to run some basic statistical tests in R: t.test, anova and linear regression.
+
+## Data Analysis Model
+
+![](https://r4ds.hadley.nz/diagrams/data-science/base.png)
+
+*Source: [R for Data Science](https://r4ds.hadley.nz/intro), second edition*
+
+## Load packages
+
+```{r}
+library(tidyverse)
+library(broom)
+library(gtsummary)
+```
+
+## Read data
+
+```{r}
+dat <- read_csv("penguins.csv")
+```
+
+## View data
+
+```{r}
+# View(dat)
+```
+
+You can achieve the same thing by placing cursor on `dat` and press F2.
+
+## Palmer Penguins Dataset
+
+![](images/Palmer_archipelago,_Antarctica.jpg){width="293"}
+
+The [dataset](https://allisonhorst.github.io/palmerpenguins/) consists of 344 rows and 8 variables.
+
+-   **species**: a factor denoting penguin species (Adélie, Chinstrap and Gentoo)
+
+-   **island**: a factor denoting island in Palmer Archipelago, Antarctica (Biscoe, Dream or Torgersen)
+
+-   **bill_length_mm**: a number denoting bill length (millimeters)
+
+-   **bill_depth_mm**: a number denoting bill depth (millimeters)
+
+-   **flipper_length_mm**: an integer denoting flipper length (millimeters)
+
+-   **body_mass_g**: an integer denoting body mass (grams)
+
+-   **sex**: a factor denoting penguin sex (female, male)
+
+-   **year**: an integer denoting the study year (2007, 2008, or 2009)Explore dataset
+
+## Explore Data
+
+Variable names.
+
+```{r}
+names(dat)
+```
+
+A glimpse at data.
+
+```{r}
+glimpse(dat)
+```
+
+Summary of variables.
+
+```{r}
+summary(dat)
+```
+
+Tabulate categorical variables.
+
+```{r}
+table(dat$species)
+table(dat$island)
+```
+
+Plot histogram.
+
+```{r}
+hist(dat$bill_length_mm, breaks = 10)
+```
+
+Plot bar chart.
+
+```{r}
+barplot(table(dat$species))
+```
+
+Use pipe `|>`.
+
+```{r}
+dat$species |> 
+  table() |> 
+  barplot()
+
+dat$island |> 
+  table() |> 
+  barplot()
+```
+
+Make a pie chart.
+
+```{r}
+dat$species |> 
+  table() |> 
+  pie()
+```
+
+## `dplyr` Basic Verbs for Data Management
+
+-   `select()`: subset columns
+-   `filter()`: subset rows on conditions
+-   `mutate()`: create new columns by using information from other columns
+-   `group_by()` and `summarize()`: create summary statistics on grouped data
+-   `arrange()`: sort results
+-   `count()`: count discrete values
+
+### Select columns and filter rows
+
+Select columns `species`, `island`, `year`.
+
+```{r}
+select(dat, species, island, year)
+
+dat |> select(species, island, year)
+```
+
+Remove columns `flipper_length_mm` and `body_mass_g`.
+
+```{r}
+dat |> select(flipper_length_mm, body_mass_g)
+```
+
+Select rows (observations) of the year 2008 onward.
+
+```{r}
+dat |> filter(year >= 2008)
+```
+
+**Challenge**
+
+Using pipes, subset the data to include penguins data collected in 2007 and retain only numeric columns.
+
+```{r}
+dat |>
+  filter(year == 2007) |> 
+  select(bill_length_mm, bill_depth_mm, flipper_length_mm, body_mass_g, year)
+```
+
+### Create new column
+
+Create a new column of `bill_length_mm` in cm.
+
+```{r}
+dat1 <- dat |> 
+  mutate(bill_length_cm = bill_length_mm / 10)
+
+glimpse(dat1)
+```
+
+### Aggregate
+
+Get average bill length and depth by species.
+
+```{r}
+dat |> 
+  group_by(species) |> 
+  summarise(
+    avg_bill_length_mm = mean(bill_length_mm, na.rm = TRUE),
+    avg_bill_depth_mm = mean(bill_depth_mm, na.rm = TRUE)
+  )
+```
+
+**Challenge**
+
+Get average flipper length by island.
+
+```{r}
+dat |> 
+  group_by(island) |> 
+  summarise(
+    avg_flipper_length_mm = mean(flipper_length_mm, na.rm = TRUE)
+  )
+```
+
+### Counting
+
+```{r}
+dat |> count(island)
+dat |> count(species)
+dat |> count(year)
+```
+
+## Summary
+
+```{r}
+tbl_summary(dat)
+```
+
+## Statistical tests
+
+Q1. Is the flipper length different between male and female?
+
+```{r}
+dat |> count(sex)
+dat |> nrow()
+
+# Remove missing data first
+dat_sex <- dat |> drop_na(sex)
+dat |> count(sex)
+dat |> nrow()
+
+boxplot(flipper_length_mm ~ sex, data = dat_sex)
+
+t.test(flipper_length_mm ~ sex, data = dat_sex)
+t.test(flipper_length_mm ~ sex, data = dat_sex) |> tidy()
+```
+
+Q2. Is the bill length different by species?
+
+```{r}
+dat |> count(species)
+dat |> nrow()
+
+dat_bill <- dat |> drop_na(bill_length_mm)
+dat_bill |> count(species)
+dat |> nrow()
+
+boxplot(bill_length_mm ~ species, data = dat_bill)
+
+bill_anova <- aov(bill_length_mm ~ species, data = dat_bill)
+bill_anova
+summary(bill_anova)
+aov(bill_length_mm ~ species, data = dat_bill) |> tidy()
+```
+
+Q3. Is bill length correlated with flipper length?
+
+```{r}
+dat |> nrow()
+
+dat_cor <- dat |>
+  select(bill_length_mm, flipper_length_mm) |> 
+  drop_na()
+dat_cor |> nrow()
+
+plot(dat_cor)
+
+m <- lm(flipper_length_mm ~ bill_length_mm, data = dat_cor)
+summary(m)
+est <- tidy(m)
+est
+
+plot(dat_cor)
+abline(m, col = "red")
+```
